@@ -19,7 +19,7 @@ import static com.example.bigproject.MainActivity.APP_PREFERENCES;
  * Работа с сервером
  */
 public class ServerWork {
-    private static String defaultHost = "https://d9962d1f.ngrok.io/";
+    private static String defaultHost = "http://6d4fbb127505.ngrok.io/";
     private SharedPreferences mSittings;
     private final String AUTHTOHOST = "AuthToHost";
     private Context context;

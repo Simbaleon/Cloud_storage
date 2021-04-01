@@ -28,8 +28,7 @@ dependencies {
     //Мои библиотеки
     implementation 'com.google.android.material:material:1.1.0'
     //Шифрование
-    implementation 'com.yakivmospan:scytale:1.0.1'
-    implementation 'com.scottyab:aescrypt:0.0.1'
+j
 
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.0.0'
