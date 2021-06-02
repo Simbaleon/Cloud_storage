@@ -2,17 +2,14 @@ package com.example.bigproject;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Message;
-import android.security.keystore.KeyProperties;
 import android.util.Base64;
 
 import com.scottyab.aescrypt.AESCrypt;
-import com.yakivmospan.scytale.Crypto;
 import com.yakivmospan.scytale.KeyProps;
-import com.yakivmospan.scytale.Options;
 import com.yakivmospan.scytale.Store;
 
+import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -29,25 +26,18 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
-import java.security.KeyPair;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
-import java.util.Vector;
-import java.util.logging.Handler;
 
-import javax.crypto.SecretKey;
 import javax.security.auth.x500.X500Principal;
 
-/**
- * Работа с локальными данными пользователя
- */
 public class LocalBase {
 
     private static Context context;
     private static String root = "";
-    private static String folderForZametka = "";
+    private static String folderForZametka = "/zametka";
     private static String folderForImages = "";
     private static String storeName = "";
     private static String storePassword = "";
@@ -57,21 +47,10 @@ public class LocalBase {
     private static android.os.Handler handler = null;
 
 
-    /**
-     * Set handler.
-     *
-     * @param handlerArg the handler arg
-     */
-    /* Initializing important variables from config.propirties */
+    /* Инициализация важных переменных из config.propirties */
     public static void setHandler(android.os.Handler handlerArg){
         handler = handlerArg;
     }
-
-    /**
-     * Initialization.
-     *
-     * @param contextArg the context arg
-     */
     public static void initialization(Context contextArg)
     {
         context = contextArg;
@@ -122,10 +101,6 @@ public class LocalBase {
         store.generateAsymmetricKey(keyProps);
         store.generateSymmetricKey(alias,keySecterPassword.toCharArray());
     }
-
-    /**
-     * Первичная настройка.
-     */
     public static void firstSetting()
     {
         //Создаём папку для хранения заметок
@@ -142,9 +117,6 @@ public class LocalBase {
         makeKeys();
     }
 
-    /**
-     * Зашифровать
-     */
     /* Шифрование */
     public static synchronized String encode(String value)
     {
@@ -158,10 +130,6 @@ public class LocalBase {
         }
         return encryptedData;
     }
-
-    /**
-     * Расшифровать
-     */
     public static synchronized String deCode(String value)
     {
 
@@ -176,9 +144,7 @@ public class LocalBase {
     }
 
 
-    /**
-     * Сереализация заметки
-     */
+    /* Сереализация */
     private static synchronized String serializationZametke(Serializable serializable) throws IOException
     {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -188,17 +154,6 @@ public class LocalBase {
 
         return Base64.encodeToString(byteArrayOutputStream.toByteArray(),0);
     }
-
-    /**
-     * De serialization zametka zametka.
-     *
-     * @param str the str
-     * @return the zametka
-     * @throws IOException            the io exception
-     * @throws ClassNotFoundException the class not found exception
-     *
-     * Десериализация заметки
-     */
     public static synchronized Zametka deSerializationZametka(String str) throws IOException,ClassNotFoundException
     {
         byte[] data = Base64.decode(str,0);
@@ -210,18 +165,13 @@ public class LocalBase {
     }
 
 
-
-    /**Сохраняем картинку в папку*/
-    private static synchronized boolean saveStrBitmap(String name, String strBtm)
+    /* Сохранение данныых на устройстве */
+    //Сохраняем картинку в папку
+    public static synchronized boolean saveStrBitmap(String name, String strBtm)
     {
         if(strBtm.length() == 0) return false;
-
         try {
-
             String strBtmEncode = encode(strBtm);
-            char[] arrS = deCode(strBtmEncode).toCharArray();
-            String arr = deCode(strBtmEncode);
-            Bitmap bitmap = ZametkaWork.deSerializationBitmap(String.valueOf(arrS));
 
             File file1 = new File(root + folderForImages + "/" + name + ".txt");
             FileOutputStream fileOutputStream = new FileOutputStream(file1);
@@ -234,8 +184,8 @@ public class LocalBase {
         }
         return true;
     }
-    /**Сохраняем заметки в файл*/
-    private static synchronized boolean saveZamNotBtm(Zametka zametka)
+    //Сохраняем заметку в папку
+    public static synchronized boolean saveZamNotBtm(Zametka zametka)
     {
         zametka.setBitmap("");
         File file1 = new File(root + folderForZametka +"/"+ zametka.getData() + ".txt");
@@ -252,22 +202,23 @@ public class LocalBase {
         }
         return true;
     }
+    public static synchronized boolean save(Zametka zametka) throws IOException {
+        //Проверяем, содержит ли заметка uri
+       // boolean haveUri = false;
+        //if(!zametka.getUri().equals("")) haveUri = true;
+        //zametka.setUri("");
 
-    /**
-     * Save boolean.
-     *
-     * @param zametka the zametka
-     * @return the boolean
-     * Сохранение заметки
-     */
-    public static synchronized boolean save(Zametka zametka)
-    {
+        //Если заметка содержит картинку и нам удалось её сохранить, то идём сохранять текст
         if(!zametka.getBitmap().equals(""))
         {
             if (saveStrBitmap(zametka.getData(), zametka.getBitmap()))
                 if(saveZamNotBtm(zametka))
                 {
                     updateUI();
+                    if(zametka.getUri().equals("")) {
+                        ServerWork serverWork = new ServerWork(context);
+                        serverWork.upload(zametka.getData(), context, true);
+                    }
                     return true;
                 }
                 else
@@ -278,21 +229,18 @@ public class LocalBase {
             if(saveZamNotBtm(zametka))
             {
                 updateUI();
+                if(zametka.getUri().equals("")) {
+                    ServerWork serverWork = new ServerWork(context);
+                    serverWork.upload(zametka.getData(), context, true);
+                }
                 return true;
             }
             else
                 return false;
         }
-
     }
 
-
-    /**
-     * Delete zam.
-     *
-     * @param data the data
-     * Удаление заметки
-     */
+    /* Удаление звсетки */
     public static synchronized void deleteZam(String data)
     {
         File fileZam = new File(root + folderForZametka + "/" + data + ".txt");
@@ -302,14 +250,31 @@ public class LocalBase {
         updateUI();
     }
 
+    //При выходе из аккаунта удаляем все данные
+    public static void deleteBase()
+    {
+        File file1 = new File(root + folderForZametka+"/");
+        if (file1.exists()) {
+            try {
+                FileUtils.deleteDirectory(file1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        File file2 = new File(root + folderForImages+"/");
+        if (file2.exists()) {
+            try {
+                FileUtils.deleteDirectory(file2);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
-    /**
-     * Gets zam local.
-     *
-     * @return the zam local
-     * @throws FileNotFoundException the file not found exception
-     * Получаем вектор,содержащий все заметки в памяти устройства. Название заметки и её картинки совпадают
-     */
+    }
+
+
+    /* Получаем данные */
+    //Получаем вектор,содержащий все заметки в памяти устройства. Название заметки и её картинки совпадают
     public static synchronized List<Zametka> getZamLocal() throws FileNotFoundException
     {
         List<Zametka> list =new ArrayList<Zametka>();
@@ -347,15 +312,7 @@ public class LocalBase {
         }
         return list;
     }
-
-    /**
-     * Gets bitmap.
-     *
-     * @param name the name
-     * @return the bitmap
-     * @throws FileNotFoundException the file not found exception
-     * Получаем картинку по её имени
-     */
+    //Получаем картинку по её имени
     public static synchronized Bitmap getBitmap(String name) throws FileNotFoundException {
         Bitmap bitmap = null;
         StringBuilder stringBuilder = new StringBuilder();
@@ -380,24 +337,41 @@ public class LocalBase {
         bitmap = ZametkaWork.deSerializationBitmap(deCode(text));
         return bitmap;
     }
-
-    /**
-     * Chheck bitmap boolean.
-     *
-     * @param name the name
-     * @return the boolean
-     * Получаем картинку по её имени
-     */
+    //Получаем картинку по её имени
     public static synchronized boolean chheckBitmap(String name) {
         File file = new File(root+folderForImages+"/"+name+".txt");
         return file.exists();
     }
 
-    /** Проверяет, открыто ли главное окно приложения. А если да,то перерисовывает интерфейс  */
+    /* Проверяет, открыто ли основное окно приложения. И если да,то перерисовывает интерфейс  */
     private static void updateUI()
     {
         Message message = new Message();
         handler.sendMessage(message);
     }
+
+    //Переделываем
+    public static synchronized boolean writeResponseBodyToDisk(String data,String name,boolean img) {
+        File file1;
+        if(img)
+            file1 = new File(root +folderForImages+"/"+name);
+        else
+            file1 = new File(root +folderForZametka+"/"+name);
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(file1);
+            fileOutputStream.write(data.getBytes());
+            fileOutputStream.close();
+            updateUI();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
 }
 

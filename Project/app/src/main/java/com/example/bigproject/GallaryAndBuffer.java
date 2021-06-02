@@ -12,28 +12,17 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.net.URI;
 
-/**
- * Отвечает за работу буфером и галереей
- */
 public class GallaryAndBuffer extends AppCompatActivity {
     private Context context;
     private Cursor cursor;
     private ClipboardManager clipboard;
 
 
-    /**
-     * Instantiates a new Gallary and buffer.
-     *
-     * @param context the context
-     */
     GallaryAndBuffer(Context context){
         this.context = context;
         clipboard = (ClipboardManager) context.getSystemService(CLIPBOARD_SERVICE);
     }
 
-    /**
-     * Получение последней картинки в галерее
-     */
     public Uri getImageLaster(long date){
         String[] projection = new String[]{
                 MediaStore.Images.Media._ID,
@@ -60,10 +49,6 @@ public class GallaryAndBuffer extends AppCompatActivity {
             return uri;
         }
     };
-
-    /**
-     * Получение последнего видео в галерее
-     */
     public Uri getVideoLaster(long date){
         String[] projection = new String[]{
                 MediaStore.Images.Media._ID,
@@ -90,12 +75,6 @@ public class GallaryAndBuffer extends AppCompatActivity {
             return uri;
         }
     };
-
-    /**
-     * Get tek str string.
-     *
-     * @return the string
-     */
     public String GetTekStr(){
         if(clipboard.hasPrimaryClip()) return ""+clipboard.getPrimaryClip().getItemAt(0).getText();
         else return "";

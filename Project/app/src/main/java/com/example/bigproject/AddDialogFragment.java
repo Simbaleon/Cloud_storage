@@ -1,7 +1,12 @@
 package com.example.bigproject;
 
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,29 +17,30 @@ import android.widget.Toast;
 
 import androidx.fragment.app.DialogFragment;
 
-/**
- * Добавляет диалоговое окно.
- */
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static android.app.Activity.RESULT_OK;
+
 public class AddDialogFragment extends DialogFragment {
 
-    private Button buttonSave,buttonDelete;
+    private Button buttonSave,buttonDelete,buttonSetPhoto;
     private EditText zametkaName;
     private EditText zametkaValue;
     private Zametka zametka;
+    private final int Pick_image = 1;
+    private Context context;
 
-    /**
-     * Instantiates a new Add dialog fragment.
-     *
-     * @param zametka the zametka
-     */
-    AddDialogFragment(Zametka zametka)
+    AddDialogFragment(Zametka zametka,Context context)
     {
         this.zametka=zametka;
+        this.context = context;
     }
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
 
         getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -44,14 +50,13 @@ public class AddDialogFragment extends DialogFragment {
 
         buttonSave= v.findViewById(R.id.button_save);
         buttonDelete= v.findViewById(R.id.button_delete);
+        buttonSetPhoto = v.findViewById(R.id.button_set_image);
 
         zametkaName = v.findViewById(R.id.zametka_name);
         zametkaValue = v.findViewById(R.id.zametka_value);
 
         zametkaName.setText(zametka.getName());
         zametkaValue.setText(zametka.getValue());
-
-
 
         buttonDelete.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -77,7 +82,16 @@ public class AddDialogFragment extends DialogFragment {
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        LocalBase.save(zametka);
+                        try {
+                            LocalBase.save(zametka);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        if(!zametka.getUri().equals(""))
+                        {
+                            ZametkaWork zametkaWork = new ZametkaWork(context);
+                            zametkaWork.preparationAndSaveZam(zametka);
+                        }
                     }
                 });
                 thread.start();
@@ -85,6 +99,32 @@ public class AddDialogFragment extends DialogFragment {
                 dismiss();
             }
         });
+
+
+        buttonSetPhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Вызываем стандартную галерею для выбора изображения с помощью Intent.ACTION_OPEN_DOCUMENT:
+                Intent photoPickerIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                //Тип получаемых объектов - image:
+                photoPickerIntent.setType("image/*");
+                //Запускаем переход с ожиданием обратного результата в виде информации об изображении:
+                startActivityForResult(photoPickerIntent, Pick_image);
+            }
+        });
+
         return v;
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
+        super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
+        switch(requestCode) {
+            case Pick_image:
+                if(resultCode == RESULT_OK){
+                    final Uri imageUri = imageReturnedIntent.getData();zametka.setUri(imageUri.toString());
+                    zametka.setUri(imageUri.toString());
+
+                }
+        }}
 }

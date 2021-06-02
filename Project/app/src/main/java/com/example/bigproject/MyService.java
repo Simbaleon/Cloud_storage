@@ -21,31 +21,25 @@ import androidx.annotation.RequiresApi;
 
 import java.io.IOException;
 
-/**
- * Сервис. Висит в фоне и проверяет не появилось ли новогого элемента в галерее или буффере обмена
- */
 public class MyService extends Service implements View.OnTouchListener {
 
-    /**
-     * The Context.
-     */
     static Context context;//Возможная ошибка
     private Handler handler;//принимает сообщение из потока галереи
     private GallaryAndBuffer gallaryAndBuffer;
     private Thread thread;//поток для сканирования галереи
     private long date;//время последнего обновления галереи
-    private String message;//The Message object comes from the scanner stream to the handler, this is its property obj
+    private String message;//Из потока-сканнера в hendler приходит объект Message,это его свойство obj
     private String tekStr="";//текущая строка из буфера
     private int widthForButton = 0;
     private int heightForButton = 0;
     private Button mButton;
+    private boolean cycle = true; //Отвечает за работу потока, который проверяет данные в буфере и галереи
 
     private WindowManager.LayoutParams params;
     private WindowManager wm;
 
-    /**
-     * Построение потока.
-     */
+
+    //Поток,в котором выполняется проверка галереии и буфера обмена
     private void buildThread()
     {
         tekStr= gallaryAndBuffer.GetTekStr();//Чтобы при первом запуске не появлялось кнопки
@@ -53,7 +47,7 @@ public class MyService extends Service implements View.OnTouchListener {
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void run() {
-                while (true) {
+                while (cycle) {
                     try
                     {
                         if (gallaryAndBuffer.getImageLaster(date) != null) {
@@ -92,41 +86,29 @@ public class MyService extends Service implements View.OnTouchListener {
         });
     }
 
-    /**
-     * Запуск потока
-     */
     private void startThread() {
         date = System.currentTimeMillis() / 1000;
-        thread.start();
+        if(!thread.isAlive())
+            thread.start();
     }
 
-    /**
-     * Остановка потока
-     */
     private void stopThread() {
         thread.interrupt();
     }
 
-    /**
-     * Вывод на экран кнопки сохранения
-     */
+    //Выводит кнопку на экран
     private void makeBtn() {
         mButton.setTextColor(context.getResources().getColor(R.color.button_txt_norm));
         mButton.setClickable(true);
         wm.addView(mButton, params);
     }
 
-    /**
-     * Удаление кнопки
-     */
+    //Удаляет кнопку с экрана
     private void deleteBtn() {
         wm.removeView(mButton);
     }
 
 
-    /**
-     * Instantiates a new My service.
-     */
     @RequiresApi(api = Build.VERSION_CODES.M)
     public MyService() {
         gallaryAndBuffer = new GallaryAndBuffer(context);
@@ -154,6 +136,7 @@ public class MyService extends Service implements View.OnTouchListener {
                 } else deleteBtn();
             }
         };
+
     }
 
     @Override
@@ -194,6 +177,7 @@ public class MyService extends Service implements View.OnTouchListener {
     }
 
     public void onDestroy() {
+        cycle = false;
         this.stopThread();
         super.onDestroy();
     }
@@ -208,9 +192,9 @@ public class MyService extends Service implements View.OnTouchListener {
         if(message.substring(message.indexOf("|")+1,message.length()).equals("Uri"))
             zametka.MakeAndSaveImageZam(Uri.parse(message.substring(0,message.indexOf("|"))));
         else zametka.MakeAndSaveTextZam(message);
-
         return false;
     }
+
 
 }
 

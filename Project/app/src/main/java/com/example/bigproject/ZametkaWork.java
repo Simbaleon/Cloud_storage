@@ -9,15 +9,13 @@ import android.util.Base64;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/**
- * Работа с заметками
- */
 public class ZametkaWork {
 
     private Context context;
@@ -27,37 +25,17 @@ public class ZametkaWork {
     private String inf = ""; //Строка, которая приходит в методы save...
     private Thread thread; //Тут происходит вся работа
 
-    /**
-     * Instantiates a new Zametka work.
-     *
-     * @param context the context
-     */
     ZametkaWork(Context context){
         this.context = context;
     }
 
 
-    /**
-     * De serialization bitmap bitmap.
-     *
-     * @param str the str
-     * @return the bitmap
-     * Десериализация картинки
-     */
     public static Bitmap deSerializationBitmap(String str)
     {
         if(str.length() == 0) return null;
         byte[] decodedBytes = Base64.decode(str, Base64.DEFAULT);
         return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
     }
-
-    /**
-     * Serialization bitmap string.
-     *
-     * @param uri the uri
-     * @return the string
-     * Сериализация картикни
-     */
     public String serializationBitmap(Uri uri)
     {
 
@@ -74,11 +52,7 @@ public class ZametkaWork {
 
         return Base64.encodeToString(byteArrayOutputStream.toByteArray(),0);
     }
-
-    /**
-     * Создание заметки
-     */
-    private Zametka makeZametka()
+    public static Zametka makeZametka()
     {
         Zametka zametka = new Zametka();
 
@@ -95,12 +69,7 @@ public class ZametkaWork {
     }
 
 
-    /**
-     * Создание и сохранение текстовой заметки
-     *
-     * @param str the str
-     */
-//Создаём и сохраняем заметку на телефоне
+    //Создаём и сохраняем заметку на телефоне
     //Если заметка была вызвана соханением картинки
     public void MakeAndSaveTextZam(String str)
     {
@@ -121,7 +90,11 @@ public class ZametkaWork {
                 zametka.setBitmap("");
 
                 //Сохраняемя заметку в файл
-                LocalBase.save(zametka);
+                try {
+                    LocalBase.save(zametka);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 String v = "4";
                 thread.interrupt();
@@ -129,13 +102,7 @@ public class ZametkaWork {
         });
         thread.start();
     }
-
-    /**
-     * Создание и сохранение заметки с картинкой
-     *
-     * @param ArgUri the arg uri
-     */
-//Если заметка была вызвана сохраением текста
+    //Если заметка была вызвана сохраением текста
     public void MakeAndSaveImageZam(Uri ArgUri)
     {
         uri = ArgUri;
@@ -158,12 +125,35 @@ public class ZametkaWork {
                 zametka.setBitmap(bitmapStr);
 
                 //Сохраняемя заметку в файл
-                LocalBase.save(zametka);
+                try {
+                    LocalBase.save(zametka);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 thread.interrupt();
                 }
             });
         thread.start();
+    }
+    public void preparationAndSaveZam(final Zametka zametkaNew){
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Zametka zam = zametkaNew;
+                Uri uri = Uri.parse(zam.getUri());
+                zam.setBitmap( serializationBitmap(uri) );
+                zam.setUri("");
+                try {
+                    LocalBase.save(zam);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+
     }
 
 }

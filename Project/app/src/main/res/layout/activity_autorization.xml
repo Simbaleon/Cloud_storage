@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/autorize_lay"
     android:gravity="center"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
-
 
 
     <EditText
@@ -31,14 +31,6 @@
         android:inputType="textPersonName" />
 
 
-    <TextView
-        android:id="@+id/requestTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/transparent"
-        android:gravity="center"
-        android:textColor="#F44336" />
-
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -54,9 +46,11 @@
             android:layout_marginRight="10dp"
             android:backgroundTint="@color/blue"
             android:textColor="@color/abs_white"
+            android:textSize="12sp"
             android:text="@string/reg_Btn_text" />
 
         <Button
+            android:imeOptions="actionDone"
             android:id="@+id/enterBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -65,6 +59,7 @@
             android:layout_marginRight="60dp"
             android:backgroundTint="@color/blue"
             android:textColor="@color/abs_white"
+            android:textSize="12sp"
             android:text="@string/enter_Btn_text" />
 
     </LinearLayout>

@@ -1,33 +1,29 @@
 package com.example.bigproject;
 
-import android.Manifest;
-import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.Settings;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 
-/**
- * Класс отвечающий за афторизацию.
- */
-public class Autorization extends Activity implements View.OnClickListener {
+public class Autorization extends Fragment implements View.OnClickListener {
 
     private final int REQUEST_OF_PERMISSION = 1;
     private final String APP_PREFERENCES = "mysettings";
@@ -39,97 +35,83 @@ public class Autorization extends Activity implements View.OnClickListener {
     private EditText loginText;
     private EditText passwordText;
     private TextView requestTextView;
+    private String regStatus="";
+    private Context context;
+    private View rootView;
 
-    /**
-     * Запускает приложение
-     */
+    public Autorization(){
+    }
+
+
+    //Запускаем главное окно приложения
     private void startMainClass()
     {
+        if(!regStatus.equals("") && !regStatus.equals("reg"))
+        {
+            final Toast toast = Toast.makeText(context, "Началась загрузка данных", Toast.LENGTH_SHORT);
+            toast.show();
+            new CountDownTimer(10000, 1000) {
+                public void onTick(long millisUntilFinished) {
+                    toast.show();
+                }
+
+                public void onFinish() {
+                    toast.cancel();
+                }
+            }.start();
+        }
+        mSittings = context.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = mSittings.edit();
         editor.putString(AUTORIZATION,"true");
         editor.apply();
-        Intent intent = new Intent(Autorization.this,MainClass.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+        ((MainClass)getActivity()).stopAuth(this);
     }
 
-    /**
-     * Получение разрешений
-     */
-    private void SetPermission()
+
+
+    //Выводим сообщение для пользователя
+    private void requestToUser(String request)
     {
-        //Разрешение на чтение галереи
-        int permissionStatusReadGalary = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
-        int permissionStatusAlertWindow = ContextCompat.checkSelfPermission(this,Manifest.permission.SYSTEM_ALERT_WINDOW);
-
-        //Разрешение на отображение поверх экрана
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && permissionStatusAlertWindow!= PackageManager.PERMISSION_GRANTED) {
-            if (!Settings.canDrawOverlays(this)) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
-                startActivityForResult(intent, REQUEST_OF_PERMISSION);
-            }
-        }
-
-        if(permissionStatusReadGalary == PackageManager.PERMISSION_GRANTED);
-        else ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},REQUEST_OF_PERMISSION);
+        Toast toast = Toast.makeText(context,
+                request, Toast.LENGTH_SHORT);
+        toast.show();
 
     }
 
-    /**
-     * Проверяем,выполнен ли уже вход
-     */
-    private boolean checkAutorization()
-    {
 
-        mSittings = getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
-        if(mSittings.contains(AUTORIZATION) && mSittings.getString(AUTORIZATION,"true").equals("true") )
-            return true;
-        else
-            return false;
-    }
-
-    /**
-     * Выводим сообщение для пользователя
-     */
-    private void requestToUser(String request,int color)
-    {
-        requestTextView.setTextColor(color);
-        requestTextView.setText(request);
-    }
-
+    @Nullable
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         //Получаем разрешение на чтение из галереи и отображение поверх экрана
-        SetPermission();
-        LocalBase.initialization(getApplicationContext());
+        this.context = getActivity().getApplication();
+        View rootView =
+                inflater.inflate(R.layout.activity_autorization, container, false);
 
-        //Проверяем,был ли человек уже авторизован
-        if(checkAutorization())
-        {
-            startMainClass();
-        }
-        else
-        {
-            setContentView(R.layout.activity_autorization);
-            loginText = findViewById(R.id.loginText);
-            passwordText = findViewById(R.id.passwordText);
-            requestTextView = findViewById(R.id.requestTextView);
-            enterBtn = findViewById(R.id.enterBtn);
-            regBtn = findViewById(R.id.regBtn);
+            loginText = rootView.findViewById(R.id.loginText);
+            passwordText = rootView.findViewById(R.id.passwordText);
+            enterBtn = rootView.findViewById(R.id.enterBtn);
+            regBtn = rootView.findViewById(R.id.regBtn);
 
             enterBtn.setOnClickListener(this);
             regBtn.setOnClickListener(this);
-        }
 
-
+        return rootView;
     }
+
+
 
     @Override
     public void onClick(View v) {
 
-        final ServerWork serverWork = new ServerWork(getApplicationContext());
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        View focusedView = getActivity().getCurrentFocus();
+        if (focusedView != null) {
+            imm.hideSoftInputFromWindow(focusedView.getWindowToken(),
+                    InputMethodManager.HIDE_NOT_ALWAYS);
+        }
+
+        final ServerWork serverWork = new ServerWork(context);
         final String login = loginText.getText().toString();
         final String password = passwordText.getText().toString();
 
@@ -146,37 +128,38 @@ public class Autorization extends Activity implements View.OnClickListener {
                 switch (msg.arg1)
                 {
                     case -1:
-                        requestToUser(getString(R.string.request_minus_1),R.color.red);
+                        requestToUser(getString(R.string.request_minus_1));
                         break;
                     case 0:
-                        requestToUser(getString(R.string.request_0),R.color.red);
+                        requestToUser(getString(R.string.request_0));
                         break;
                     case 1:
                         startMainClass();
                         break;
                     case 2:
-                        requestToUser(getString(R.string.request_2),R.color.red);
+                        requestToUser(getString(R.string.request_2));
                         break;
                     case 3:
-                        requestToUser(getString(R.string.request_3),R.color.red);
+                        requestToUser(getString(R.string.request_3));
                         break;
                 }
             }
         };
 
         Runnable runnable = null;
-        if(login.length()<8 || password.length()<8) requestToUser(getString(R.string.small_login_or_password),R.color.red);
+        if(login.length()<8 || password.length()<8) requestToUser(getString(R.string.small_login_or_password));
         else
         {
             enterBtn.setClickable(false);
             regBtn.setClickable(false);
-            requestToUser(getString(R.string.waiting_srver_request),R.color.red);
+            requestToUser(getString(R.string.waiting_srver_request));
             final String regOrAut;
 
             if(v.getId() == R.id.regBtn)
                 regOrAut = "reg";
             else
                 regOrAut = "aut";
+            regStatus = regOrAut;
             runnable = new Runnable() {
                 @RequiresApi(api = Build.VERSION_CODES.O)
                 @Override
@@ -193,11 +176,6 @@ public class Autorization extends Activity implements View.OnClickListener {
     }
 
     @Override
-    protected void onRestart() {
-        super.onRestart();
-    }
-
-    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_OF_PERMISSION:
@@ -206,7 +184,7 @@ public class Autorization extends Activity implements View.OnClickListener {
                     String arr = "daa";
                     // permission granted
                 } else {
-                    this.finish();
+                    System.exit(0);
                 }
                 return;
         }

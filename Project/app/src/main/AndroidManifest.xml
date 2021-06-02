@@ -22,10 +22,13 @@
             android:enabled="true"
             android:exported="true"></service>
 
-        <activity android:name=".Autorization"></activity>
-        <activity android:name=".MainClass">
+        <activity android:name=".Autorization">
         </activity>
-        <activity android:name=".MainActivity">
+        
+        <activity android:name=".MainActivity"
+            android:screenOrientation="fullSensor">
+        </activity>
+        <activity android:name=".MainClass">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -14,18 +15,27 @@
         android:layout_height="wrap_content"
         >
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
         <EditText
+
             android:id="@+id/zametka_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="17dp"
             android:layout_marginTop="5dp"
             android:gravity="top|center"
+            android:layout_weight="2"
             android:textColor="@color/abs_white"
             android:textColorHint="@color/hint_grey"
             android:hint="Название"
+            android:maxLength="30"
             android:textSize="20dp"
             android:backgroundTint="@color/transparent"/>
+
+        </LinearLayout>
 
         <EditText
             android:id="@+id/zametka_value"
@@ -43,46 +53,79 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            >
+            android:layout_height="match_parent"
+            android:layout_marginBottom="2dp"
+            android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/button_delete"
-                android:layout_width="78dp"
-                android:layout_height="24dp"
-                android:layout_marginLeft="243dp"
-                android:layout_marginRight="0dp"
-                android:layout_marginBottom="2dp"
-                android:backgroundTint="@color/red"
-                android:gravity="center"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:text="delete"
-                android:textColor="@color/abs_white"
-                android:textSize="12sp"
-                app:cornerRadius="15dp"
-                app:elevation="0dp" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
-            <Button
-                android:id="@+id/button_save"
-                android:layout_width="78dp"
-                android:layout_height="24dp"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="15dp"
-                android:layout_marginBottom="2dp"
-                android:backgroundTint="@color/blue"
-                android:gravity="center"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:text="Save"
-                android:textColor="@color/abs_white"
-                android:textSize="12sp"
-                app:cornerRadius="15dp"
-                app:elevation="0dp" />
+                <Button
+                    android:id="@+id/button_set_image"
+                    android:layout_width="100dp"
+                    android:layout_height="24dp"
+                    android:layout_marginLeft="3dp"
+                    android:backgroundTint="@color/pink"
+                    android:gravity="center"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="add image"
+                    android:textColor="@color/abs_white"
+                    android:textSize="11sp"
+                    app:cornerRadius="15dp"
+                    app:elevation="0dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/button_delete"
+                    app:layout_constraintHorizontal_bias="0.027"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.666" />
+
+                <Button
+                    android:id="@+id/button_delete"
+                    android:layout_width="78dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginRight="8dp"
+                    android:backgroundTint="@color/red"
+                    android:gravity="center"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="delete"
+                    android:textColor="@color/abs_white"
+                    android:textSize="12sp"
+                    app:cornerRadius="15dp"
+                    app:elevation="0dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@+id/button_save"
+                    app:layout_constraintHorizontal_bias="0.987"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/button_save"
+                    android:layout_width="78dp"
+                    android:layout_height="24dp"
+                    android:layout_marginRight="4dp"
+                    android:backgroundTint="@color/blue"
+                    android:gravity="center"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Save"
+                    android:textColor="@color/abs_white"
+                    android:textSize="12sp"
+                    app:cornerRadius="15dp"
+                    app:elevation="0dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.666" />
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
-
 
 
     </LinearLayout>
